@@ -1,4 +1,4 @@
-# Puppet export_resource
+# Puppet export_resources
 ## Overview
 
 The goal of this module is to simplify export resource usage and testing. Unlike puppet built in export resource (@@type), this does not require stored_config and allows export of resource on a per attribute level.
@@ -28,7 +28,7 @@ This will not only import the yaml file but also sub directories. Resource in su
                  │       └── server2.yaml
                  └── app_1.yaml
 
-The example above will be imported via import_resource('/tmp/f5_pool/app_1'). The following data will be merged into the final resoure hash:
+The example above will be imported via import_resource('/tmp/f5_pool/', 'app_1'). The following data will be merged into the final resoure hash:
 
     # /tmp/f5_pool/app_1.yaml
     --- 
