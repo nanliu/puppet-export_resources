@@ -17,7 +17,7 @@ Takes three parameters:
 
   FileUtils.mkdir_p(path) unless File.exists?(path)
 
-  raise Puppet::Error, "export_resource(): #{path} is not a directory." unless File.directory?(path)
+  raise Puppet::Error, "export_resource(): path #{path} is not a directory." unless File.directory?(path)
   file = File.join(path, "#{title}.yaml")
 
   metadata = "# export_resource\n# system: #{lookupvar('clientcert')}\n# config: #{catalog.version}"

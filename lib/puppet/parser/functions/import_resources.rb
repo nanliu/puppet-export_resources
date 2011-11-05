@@ -2,33 +2,47 @@ require 'yaml'
 Puppet::Parser::Functions::newfunction(:import_resources, :type => :rvalue, :doc => '
 Import yaml file(s) intended for consumption for create_resource or create_virtual_resource.
 Takes one parameters:
-  import_resources([$file_path])
+  import_resources($path, $title)
     import resources in the following hash format:
     { title => { parameter1 => value,
                  parameter2 => value,
                }
     }
 
-  This will import the resource matching /path/resource/title.yaml subdirectories will be loaded as resource attributes. For example:
+  This will import the resource matching /path/resource/title.yaml, subdirectories will be loaded as resource attributes. For example:
   /path/f5_pool/%{title}.yaml
   /path/f5_pool/%{title}/
                          %{attribute}.yaml
                          %{param}/
                                   system_a.yaml
                                   system_b.yaml
-
 ') do |args|
 
   param = {}
-  raise ArgumentError, "import_resource(): wrong number of arguments (#{args.length}; must be 1)" if args.length != 1
-  title = args[0]
+  raise Puppet::ParseError, "import_resources(): wrong number of arguments #{args.length}, expecting (path, title)." if args.length != 2
+  path = args[0]
+  title = args[1]
 
-  raise Puppet::Error, "import_resource(): import file #{title}.yaml not available." unless File.exist?("#{title}.yaml") && File.file?("#{title}.yaml")
+  raise Puppet::ParseError, "import_resources(): path #{path} is not absolute." unless path == File.expand_path(path)
+  raise Puppet::Error, "import_resources(): path #{path} is not a directory." unless File.exist?(path) && File.directory?(path)
+  Dir.chdir(path)
 
-  param = YAML.load_file("#{title}.yaml")
+  res_path = File.join(path, title)
+  file = File.join(path,"#{title}.yaml")
+  raise Puppet::Error, "import_resources(): file #{file} not available." unless File.exist?(file) && File.file?(file)
 
-  if File.exist?(title) && File.directory?(title)
-    Dir.chdir(title)
+  begin
+    param = YAML.load_file(file)
+  rescue exception => e
+    Puppet.warn "Failed to load #{file}: e"
+    # TODO: generate a notify resource.
+    # p_resource = Puppet::Parser::Resource.new(:notify, file, :scope => self, :source => resource)
+    # p_resource.set_parameter("message",e)
+    # compiler.add_resource(self, p_resource)
+  end
+
+  if File.exist?(res_path) && File.directory?(res_path)
+    Dir.chdir(res_path)
     #Disable
     #files = Dir.glob('*') - Dir.glob('*/')
     #
@@ -60,5 +74,5 @@ Takes one parameters:
     param = YAML.load_file(file)
   end
 
-  { File.basename(title) => param }
+  { title => param }
 end

@@ -29,7 +29,7 @@ describe "the export_resources function" do
   it "should raise a Error if path is not a directory." do
     File.stubs(:exists?).with('/foo').returns true
     File.stubs(:directory?).with('/foo').returns false
-    lambda { @scope.function_export_resources(['/foo', 'bar', {}]) }.should( raise_error(Puppet::Error, 'export_resource(): /foo is not a directory.'))
+    lambda { @scope.function_export_resources(['/foo', 'bar', {}]) }.should( raise_error(Puppet::Error, 'export_resource(): path /foo is not a directory.'))
   end
 
 end
