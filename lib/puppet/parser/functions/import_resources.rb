@@ -34,7 +34,8 @@ Takes one parameters:
   begin
     param = YAML.load_file(file)
   rescue exception => e
-    Puppet.warn "Failed to load #{file}: e"
+    # We should probably fail hard in this case.
+    raise Puppet::Error "Failed to load #{file}: e"
     # TODO: generate a notify resource.
     # p_resource = Puppet::Parser::Resource.new(:notify, file, :scope => self, :source => resource)
     # p_resource.set_parameter("message",e)
@@ -54,20 +55,31 @@ Takes one parameters:
     Dir.glob('*/').each do |dir|
       Dir.chdir(dir)
       attr = dir.chop
-      Dir.glob('*.yaml').each do |file|
-        record = YAML.load_file(file)
+      members = Dir.glob('*.yaml')
+      begin
+        members.each do |file|
+          record = YAML.load_file(file)
 
-        if param[attr].is_a? Array then
-          param[attr] << record
-        elsif param[attr].is_a? Hash then
-          param[attr] = param[attr].merge(record)
-        elsif param[attr].is_a? String then
-          param[attr] += record
-        elsif param[attr].is_a? NilClass then
-          param[attr] = record
-        else
-          raise Puppet::Error, "import_resource(): does not support #{record.class}."
+          if param[attr].is_a? Array then
+            param[attr] << record
+          elsif param[attr].is_a? Hash then
+            param[attr] = param[attr].merge(record)
+          elsif param[attr].is_a? String then
+            param[attr] += record
+          elsif param[attr].is_a? NilClass then
+            param[attr] = record
+          else
+            raise Puppet::Error, "import_resources(): does not support #{record.class}."
+          end
+
         end
+      rescue Exception => e
+        Puppet.warning "Failed to load resource values: #{e}, skipping #{file} in #{res_path} ..."
+        members = members - [file]
+        p_resource = Puppet::Parser::Resource.new(:notify, file, :scope => self, :source => resource)
+        p_resource.set_parameter("message","Failed to load resource attribute: #{e}, skipping #{file} in #{res_path} ...")
+        compiler.add_resource(self, p_resource)
+        retry
       end
     end
   else
