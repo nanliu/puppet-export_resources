@@ -17,5 +17,5 @@ $server2 = { '10.0.0.2:80' => {
                               }
            }
 
-export_resources("/tmp/f5_pool/${app}/member/", 'server1', $server1)
-export_resources("/tmp/f5_pool/${app}/member/", 'server2', $server2)
+export_resources("/tmp/f5_pool/${app}/member", 'server1', $server1)
+export_resources("/tmp/f5_pool/${app}/member", 'server2', $server2)

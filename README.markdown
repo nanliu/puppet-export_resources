@@ -34,7 +34,7 @@ An example would be:
      --- 
        state: STATE_ENABLED
 
-import_resources('/file/path/title')
+import_resources('/file/path', title)
 
 This will not only import the yaml file but also sub directories. Resource in subdirectories are expected to be concatenated (Hash merge, Array <<, String +=).
 
